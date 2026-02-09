@@ -58,11 +58,10 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CLASSE DO PDF (SEM LOGO = VELOCIDADE) ---
+# --- CLASSE DO PDF ---
 class PDF(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 14)
-        # AQUI NÃO TEM IMAGEM PARA SER RÁPIDO
         self.cell(0, 10, 'ROMANEIO DE CONFERÊNCIA - DOMÍNIO FERRAMENTAS', 0, 1, 'C')
         self.ln(10)
     def footer(self):
@@ -92,7 +91,7 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
     pdf.cell(95, 8, f"Conferente: {conferente.upper()}", border=1, ln=True)
     pdf.ln(8)
     
-    # Cabeçalho Tabela
+    # Tabela
     pdf.set_font("Arial", 'B', 9)
     pdf.set_fill_color(50, 50, 50)
     pdf.set_text_color(255, 255, 255)
@@ -101,7 +100,7 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
     for i in range(4): pdf.cell(col_w[i], 8, cols[i], border=1, fill=True, align='C')
     pdf.ln()
     
-    # Linhas Tabela
+    # Linhas
     pdf.set_font("Arial", size=9)
     pdf.set_text_color(0, 0, 0)
     total_itens = 0
@@ -114,7 +113,6 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
         pdf.ln()
         total_itens += row['Quantidade']
 
-    # Total e Assinaturas
     pdf.ln(5)
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, f"TOTAL DE VOLUMES: {total_itens}", ln=True, align='R')
@@ -147,10 +145,20 @@ base_produtos = carregar_base()
 if 'conferencia' not in st.session_state: st.session_state.conferencia = {} 
 if 'msg_status' not in st.session_state: st.session_state.msg_status = ("info", "Preencha os dados para iniciar.")
 
-# --- INTERFACE (COM LOGO NA TELA) ---
+# --- FUNÇÃO MÁGICA DE LIMPEZA (CALLBACK) ---
+def limpar_tudo_clique():
+    # Limpa a lista de itens
+    st.session_state.conferencia = {}
+    # Limpa os campos de texto forçando o estado vazio
+    st.session_state.input_pedido = ""
+    st.session_state.input_separador = ""
+    st.session_state.input_conferente = ""
+    # Reseta a mensagem
+    st.session_state.msg_status = ("info", "Conferência reiniciada com sucesso.")
+
+# --- INTERFACE ---
 col_logo, col_tit = st.columns([1, 5])
 with col_logo:
-    # AQUI ESTÁ O LOGO NA TELA INICIAL
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     else:
@@ -161,11 +169,11 @@ with col_tit:
 
 st.divider()
 
-# --- INPUTS ---
+# --- INPUTS (COM CHAVES FIXAS) ---
 c1, c2, c3 = st.columns(3)
-pedido = c1.text_input("Nº Pedido / NF", placeholder="Digite...")
-separador = c2.text_input("Separador", placeholder="Nome...")
-conferente = c3.text_input("Conferente", placeholder="Nome...")
+pedido = c1.text_input("Nº Pedido / NF", placeholder="Digite...", key="input_pedido")
+separador = c2.text_input("Separador", placeholder="Nome...", key="input_separador")
+conferente = c3.text_input("Conferente", placeholder="Nome...", key="input_conferente")
 
 if not (pedido and separador and conferente):
     st.info("👆 Para liberar o scanner, preencha os 3 campos acima.")
@@ -236,7 +244,5 @@ if st.session_state.conferencia:
                 )
         
         st.write("")
-        if st.button("🗑️ LIMPAR TUDO", use_container_width=True):
-            st.session_state.conferencia = {}
-            st.session_state.msg_status = ("info", "Conferência reiniciada.")
-            st.rerun()
+        # BOTÃO LIMPAR TUDO (COM CALLBACK CORRETO)
+        st.button("🗑️ LIMPAR TUDO", on_click=limpar_tudo_clique, use_container_width=True)
