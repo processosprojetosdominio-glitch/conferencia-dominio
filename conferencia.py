@@ -58,11 +58,11 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CLASSE DO PDF (SEM LOGO = VELOCIDADE MÁXIMA) ---
+# --- CLASSE DO PDF (SEM LOGO = VELOCIDADE) ---
 class PDF(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 14)
-        # Removi a lógica da imagem aqui para ficar instantâneo
+        # AQUI NÃO TEM IMAGEM PARA SER RÁPIDO
         self.cell(0, 10, 'ROMANEIO DE CONFERÊNCIA - DOMÍNIO FERRAMENTAS', 0, 1, 'C')
         self.ln(10)
     def footer(self):
@@ -71,7 +71,6 @@ class PDF(FPDF):
         self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', 0, 0, 'C')
 
 def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
-    # Transforma dicionário em DataFrame
     df = pd.DataFrame.from_dict(df_dict, orient='index')
     df.reset_index(inplace=True)
     df.columns = ['Código', 'Descrição', 'Marca', 'Quantidade']
@@ -93,7 +92,7 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
     pdf.cell(95, 8, f"Conferente: {conferente.upper()}", border=1, ln=True)
     pdf.ln(8)
     
-    # Cabeçalho Tabela (Fundo Escuro, Letra Branca)
+    # Cabeçalho Tabela
     pdf.set_font("Arial", 'B', 9)
     pdf.set_fill_color(50, 50, 50)
     pdf.set_text_color(255, 255, 255)
@@ -115,12 +114,11 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
         pdf.ln()
         total_itens += row['Quantidade']
 
-    # Totalizador
+    # Total e Assinaturas
     pdf.ln(5)
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, f"TOTAL DE VOLUMES: {total_itens}", ln=True, align='R')
     
-    # Assinaturas
     pdf.ln(25)
     pdf.set_font("Arial", '', 10)
     pdf.cell(95, 0, "_______________________________", align='C')
@@ -149,10 +147,14 @@ base_produtos = carregar_base()
 if 'conferencia' not in st.session_state: st.session_state.conferencia = {} 
 if 'msg_status' not in st.session_state: st.session_state.msg_status = ("info", "Preencha os dados para iniciar.")
 
-# --- INTERFACE ---
+# --- INTERFACE (COM LOGO NA TELA) ---
 col_logo, col_tit = st.columns([1, 5])
 with col_logo:
-    st.header("🛠️ DF") 
+    # AQUI ESTÁ O LOGO NA TELA INICIAL
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
+    else:
+        st.header("🛠️ DF") 
 with col_tit:
     st.title("Conferência Física")
     st.caption("Domínio Ferramentas - Sistema de Bipagem Rápida")
@@ -221,7 +223,6 @@ if st.session_state.conferencia:
         gerar_pdf = st.checkbox("🖨️ Finalizar e Gerar PDF")
         
         if gerar_pdf:
-            # Spinner para feedback visual rápido
             with st.spinner("Gerando Romaneio..."):
                 pdf_bytes = gerar_pdf_bonito(st.session_state.conferencia, pedido, separador, conferente)
                 
