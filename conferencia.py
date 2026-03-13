@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from fpdf import FPDF
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="Conferência - Domínio Ferramentas", layout="wide")
@@ -82,8 +83,10 @@ def gerar_pdf_bonito(df_dict, pedido, separador, conferente):
     # Bloco de Informações
     pdf.set_fill_color(240, 240, 240)
     pdf.cell(0, 8, f"PEDIDO / NF: {pedido.upper()}", ln=True, fill=True, border='LBRT')
-    pdf.cell(0, 8, f"DATA/HORA: {datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=True, fill=True, border='LBRT')
-    pdf.ln(5)
+   # Pega a hora exata no fuso de São Paulo/Brasília
+    data_hora_certa = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M')
+    
+    pdf.cell(0, 8, f"DATA/HORA: {data_hora_certa}", ln=True, fill=True, border='LBRT')
     
     # Responsáveis
     pdf.set_font("Arial", '', 10)
@@ -246,3 +249,4 @@ if st.session_state.conferencia:
         st.write("")
         # BOTÃO LIMPAR TUDO (COM CALLBACK CORRETO)
         st.button("🗑️ LIMPAR TUDO", on_click=limpar_tudo_clique, use_container_width=True)
+
